@@ -1,50 +1,62 @@
-#include <iostream>
-#include "glm/glm.hpp"
-#include "film.hpp"
 #include "thread_pool.hpp"
+#include "film.hpp"
 #include "camera.hpp"
 #include "sphere.hpp"
-#include "shape.hpp"
 #include "model.hpp"
+#include "geometry/plane.hpp"
+#include "scene.hpp"
 
-const int WIDTH = 192;
-const int HEIGHT = 108;
+#include <iostream>
 
 int main() {
-    std::ios_base::sync_with_stdio(false);
-    Film film(WIDTH, HEIGHT);
-    Camera camera(film, { -1, 0, 0 }, { 0, 0, 0}, 90.0f);
-    Sphere sphere{ { 0, 0, 0 }, 0.5f };
+    ThreadPool thread_pool {};
+
+    Film film { 1920, 1080 };
+    Camera camera { film, { -1.6, 0, 0 }, { 0, 0, 0 }, 90 };
+    std::atomic<int> count = 0;
 
     Model model("asset/models/simple_dragon.obj");
-    Shape &shape = model;
+    Sphere sphere {
+        { 0, 0, 0 },
+        0.5f
+    };
+    Plane plane {
+        { 0, 0, 0 },
+        { 0, 1, 0 }
+    };
+
+    Scene scene {};
+    scene.addInstance(&model, { 0, 0, 0 }, { 1, 3, 2 });
+    scene.addInstance(&sphere, { 0, 0, 1.5 }, { 0.3, 0.3, 0.3 });
+    scene.addInstance(&plane, { 0, -0.5, 0 });
+
     glm::vec3 light_pos { -1, 2, 1 };
 
     auto start = std::chrono::high_resolution_clock::now();
-    std::atomic<int> count = 0;
-    ThreadPool thread_pool {};
-    thread_pool.parallelFor(WIDTH, HEIGHT, [&](size_t x, size_t y) {
-       
+
+    thread_pool.parallelFor(film.getWidth(), film.getHeight(), [&](size_t x, size_t y) {
         auto ray = camera.generateRay({ x, y });
-        auto hitinfo = shape.intersect(ray);
-        if(hitinfo.has_value())
-        {
-            auto L = glm::normalize(light_pos - hitinfo->hit_point);
-            float cosine = glm::max(0.f, glm::dot(hitinfo->normal, L));
+        auto hit_info = scene.intersect(ray);
+        if (hit_info.has_value()) {
+            auto L = glm::normalize(light_pos - hit_info->hit_point);
+            float cosine = glm::max(0.f, glm::dot(hit_info->normal, L));
+
             film.setPixel(x, y, { cosine, cosine, cosine });
-            count++;
-            if (count % film.getWidth() == 0) {
-                std::cout << "Progress: " << static_cast<float>(count) / (film.getHeight() * film.getWidth()) << std::endl;
-            }
+        }
+
+        int n = ++count;
+        if (n % film.getWidth() == 0) {
+            std::cout << static_cast<float>(n) / (film.getHeight() * film.getWidth()) << std::endl;
         }
     });
+
     thread_pool.wait();
+
     auto end = std::chrono::high_resolution_clock::now();
     // 计算耗时（单位：毫秒）
     std::chrono::duration<double, std::milli> duration = end - start;
     std::cout << "Function took " << duration.count() << " ms" << std::endl;
 
-    film.save("output.ppm"); // Save the film to a PPM fil
-
+    film.save("test.ppm");
     return 0;
 }
