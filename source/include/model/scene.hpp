@@ -1,7 +1,7 @@
 #pragma once
 
 #include "geometry/shape.hpp"
-#include "material.hpp"
+#include "model/material.hpp"
 
 class Scene : public Shape
 {

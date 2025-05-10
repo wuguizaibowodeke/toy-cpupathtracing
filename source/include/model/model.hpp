@@ -13,7 +13,7 @@ public:
     ~Model() = default;
 
     std::optional<RayHitInfo> intersect(const Ray &ray, float t_min,
-                                        float t_max ) const override;
+                                        float t_max) const override;
 
 private:
     std::vector<Triangle> m_triangles;

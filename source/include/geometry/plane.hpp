@@ -1,11 +1,11 @@
 #pragma once
 
-#include "shape.hpp"
+#include "geometry/shape.hpp"
 
 class Plane : public Shape
 {
 public:
-    explicit Plane (const glm::vec3 &point, const glm::vec3 &normal);
+    explicit Plane(const glm::vec3 &point, const glm::vec3 &normal);
 
     ~Plane() = default;
 

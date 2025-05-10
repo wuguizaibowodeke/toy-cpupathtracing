@@ -1,6 +1,6 @@
 #pragma once
 
-#include "shape.hpp"
+#include "geometry/shape.hpp"
 
 class Triangle : public Shape
 {

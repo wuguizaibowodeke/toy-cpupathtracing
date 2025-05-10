@@ -1,12 +1,12 @@
 #include "geometry/plane.hpp"
 
-Plane::Plane( const glm::vec3 &point, const glm::vec3 &normal)
+Plane::Plane(const glm::vec3 &point, const glm::vec3 &normal)
     : m_normal(normal), m_point(point)
 {
     m_normal = glm::normalize(m_normal);
 }
 
-std::optional<RayHitInfo> Plane::intersect(const Ray &ray,float t_min, float t_max) const
+std::optional<RayHitInfo> Plane::intersect(const Ray &ray, float t_min, float t_max) const
 {
     float denominator = glm::dot(m_normal, ray.direction);
     if (std::abs(denominator) < 1e-6)

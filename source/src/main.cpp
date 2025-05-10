@@ -1,13 +1,13 @@
-#include "thread_pool.hpp"
-#include "film.hpp"
-#include "camera.hpp"
-#include "sphere.hpp"
-#include "model.hpp"
+#include "thread/thread_pool.hpp"
+#include "camera/film.hpp"
+#include "camera/camera.hpp"
+#include "geometry/sphere.hpp"
 #include "geometry/plane.hpp"
-#include "scene.hpp"
-#include "frame.hpp"
-#include "material.hpp"
-#include "rgb.hpp"
+#include "model/model.hpp"
+#include "model/scene.hpp"
+#include "model/material.hpp"
+#include "util/frame.hpp"
+#include "util/rgb.hpp"
 
 #include <iostream>
 #include <random>
@@ -53,7 +53,7 @@ int main()
 
     std::mt19937 gen(23451224);
     std::uniform_real_distribution<float> uniform(-1, 1);
-    int spp = 128; // samples per pixel
+    int spp = 1; // samples per pixel
 
     auto start = std::chrono::high_resolution_clock::now();
 

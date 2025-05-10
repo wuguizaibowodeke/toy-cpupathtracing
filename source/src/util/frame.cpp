@@ -1,4 +1,4 @@
-#include "frame.hpp"
+#include "util/frame.hpp"
 
 Frame::Frame(const glm::vec3 &normal)
 {
@@ -13,13 +13,12 @@ glm::vec3 Frame::localFromWorld(const glm::vec3 &v) const
     return glm::normalize(glm::vec3(
         glm::dot(v, m_x_axis),
         glm::dot(v, m_y_axis),
-        glm::dot(v, m_z_axis))
-    );
+        glm::dot(v, m_z_axis)));
 }
 
 glm::vec3 Frame::worldFromLocal(const glm::vec3 &v) const
 {
     return glm::normalize(v.x * m_x_axis +
-        v.y * m_y_axis +
-        v.z * m_z_axis);
+                          v.y * m_y_axis +
+                          v.z * m_z_axis);
 }

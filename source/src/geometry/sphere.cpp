@@ -1,4 +1,4 @@
-#include "sphere.hpp"
+#include "geometry/sphere.hpp"
 #include <iostream>
 
 Sphere::Sphere(const glm::vec3 &center, float radius)
@@ -28,7 +28,7 @@ std::optional<RayHitInfo> Sphere::intersect(const Ray &ray, float t_min, float t
     {
         glm::vec3 hit_point = ray.hit(hit_t);
         glm::vec3 normal = glm::normalize(hit_point - center);
-        return RayHitInfo{ hit_t, normal, hit_point };
+        return RayHitInfo{hit_t, normal, hit_point};
     }
 
     return std::nullopt;

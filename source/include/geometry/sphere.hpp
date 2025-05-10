@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ray.hpp"
+#include "camera/ray.hpp"
 #include "shape.hpp"
 #include <optional>
 
@@ -23,11 +23,9 @@ public:
         const Ray &ray,
         float t_min = 1e-5,
         float t_max = std::numeric_limits<float>::infinity()) const override;
-        
+
 private:
     glm::vec3 center;
 
     float radius;
 };
-
-

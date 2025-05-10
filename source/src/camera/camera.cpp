@@ -1,6 +1,5 @@
-#include "camera.hpp"
+#include "camera/camera.hpp"
 
-#include "camera.hpp"
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <iostream>
@@ -17,7 +16,6 @@ Camera::Camera(Film &film, const glm::vec3 &pos, const glm::vec3 &viewpoint, flo
 
 Ray Camera::generateRay(const glm::ivec2 &pixel_coord, const glm::vec2 &offset) const
 {
-
     glm::vec2 ndc = (glm::vec2(pixel_coord) + offset) / glm::vec2(m_film.getWidth(), m_film.getHeight());
     ndc.y = 1.f - ndc.y;
     // [0, 1] --> [-1, 1]

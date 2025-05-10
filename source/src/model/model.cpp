@@ -1,10 +1,10 @@
-#include "model.hpp"
+#include "model/model.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
 Model::Model(const std::vector<Triangle> &triangles)
-:m_triangles(triangles)
+    : m_triangles(triangles)
 {
 }
 
@@ -22,26 +22,26 @@ Model::Model(const std::filesystem::path &filename)
 
     std::string line = "";
     char trash;
-    while(!file.eof())
+    while (!file.eof())
     {
         std::getline(file, line);
         std::istringstream iss(line);
 
-        if(line.compare(0, 2, "v ") == 0) //顶点坐标
+        if (line.compare(0, 2, "v ") == 0) // 顶点坐标
         {
             glm::vec3 position;
             iss >> trash >> position.x >> position.y >> position.z;
             positions.push_back(position);
         }
 
-        if(line.compare(0, 3, "vn ") == 0) //顶点法向量
+        if (line.compare(0, 3, "vn ") == 0) // 顶点法向量
         {
             glm::vec3 normal;
             iss >> trash >> trash >> normal.x >> normal.y >> normal.z;
             normals.push_back(normal);
         }
 
-        if(line.compare(0, 2, "f ") == 0)//三角面
+        if (line.compare(0, 2, "f ") == 0) // 三角面
         {
             glm::ivec3 idx_v, idx_vn;
             iss >> trash;
@@ -64,10 +64,10 @@ std::optional<RayHitInfo> Model::intersect(const Ray &ray, float t_min, float t_
 {
     std::optional<RayHitInfo> closest_hitinfo{};
 
-    for(auto & triangle : m_triangles)
+    for (auto &triangle : m_triangles)
     {
         auto hitinfo = triangle.intersect(ray, t_min, t_max);
-        if(hitinfo.has_value())
+        if (hitinfo.has_value())
         {
             t_max = hitinfo->t;
             closest_hitinfo = hitinfo;

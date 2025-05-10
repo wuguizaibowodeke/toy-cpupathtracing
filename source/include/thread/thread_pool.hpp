@@ -1,17 +1,19 @@
 #pragma once
 
-#include "spin_lock.hpp"
+#include "thread/spin_lock.hpp"
 #include <functional>
 #include <vector>
 #include <thread>
 #include <queue>
 
-class Task {
+class Task
+{
 public:
     virtual void run() = 0;
 };
 
-class ThreadPool {
+class ThreadPool
+{
 public:
     static void WorkerThread(ThreadPool *master);
 
@@ -23,10 +25,11 @@ public:
 
     void addTask(Task *task);
     Task *getTask();
+
 private:
     std::atomic<int> alive;
     std::atomic<int> pengding_task_count;
     std::vector<std::thread> threads;
     std::queue<Task *> tasks;
-    SpinLock spin_lock {};
+    SpinLock spin_lock{};
 };

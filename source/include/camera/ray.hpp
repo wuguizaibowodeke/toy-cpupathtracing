@@ -1,8 +1,9 @@
 #pragma once
 #include <glm/glm.hpp>
-#include "material.hpp"
+#include "model/material.hpp"
 
-struct Ray {
+struct Ray
+{
     glm::vec3 origin;
     glm::vec3 direction;
 
@@ -11,10 +12,10 @@ struct Ray {
     Ray objectFromWorld(const glm::mat4 &object_from_world) const;
 };
 
-struct RayHitInfo {
+struct RayHitInfo
+{
     float t;
     glm::vec3 normal;
     glm::vec3 hit_point;
     const Material *material = nullptr;
 };
-

@@ -31,5 +31,3 @@ private:
 
     std::vector<Pixel> m_pixels;
 };
-
-
