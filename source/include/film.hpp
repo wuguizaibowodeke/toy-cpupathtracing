@@ -4,6 +4,11 @@
 #include <glm/glm.hpp>
 #include <filesystem>
 
+struct Pixel
+{
+    glm::vec3 color{0, 0, 0};
+    size_t sample_count = 0;
+};
 class Film
 {
 public:
@@ -17,14 +22,14 @@ public:
 
     size_t getHeight() const;
 
-    glm::vec3 getPixel(size_t x, size_t y) const;
+    Pixel getPixel(size_t x, size_t y) const;
 
-    void setPixel(size_t x, size_t y, const glm::vec3 &color);
+    void addSample(size_t x, size_t y, const glm::vec3 &color);
 
 private:
     size_t m_width, m_height;
 
-    std::vector<glm::vec3> m_pixels;
+    std::vector<Pixel> m_pixels;
 };
 
 

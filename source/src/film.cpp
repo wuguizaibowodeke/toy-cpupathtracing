@@ -1,4 +1,5 @@
 #include "film.hpp"
+#include "rgb.hpp"
 #include <fstream>
 
 Film::Film(size_t width, size_t height)
@@ -25,11 +26,11 @@ void Film::save(const std::filesystem::path &filename)
     {
         for (size_t x = 0; x < m_width; ++x)
         {
-            glm::vec3 color = getPixel(x, y);
-            glm::ivec3 color_i = glm::clamp(color * 255.f, 0.f, 255.f);
-            file << static_cast<uint8_t>(color_i.r) 
-                 << static_cast<uint8_t>(color_i.g) 
-                 << static_cast<uint8_t>(color_i.b);
+            auto pixel = getPixel(x, y);
+            RGB rgb(pixel.color / static_cast<float>(pixel.sample_count));
+            file << static_cast<uint8_t>(rgb.r) 
+                 << static_cast<uint8_t>(rgb.g) 
+                 << static_cast<uint8_t>(rgb.b);
         }
     }
 }
@@ -44,12 +45,13 @@ size_t Film::getHeight() const
     return m_height;
 }
 
-glm::vec3 Film::getPixel(size_t x, size_t y) const
+Pixel Film::getPixel(size_t x, size_t y) const
 {
     return m_pixels[y * m_width + x];
 }
 
-void Film::setPixel(size_t x, size_t y, const glm::vec3 &color)
+void Film::addSample(size_t x, size_t y, const glm::vec3 &color)
 {
-    m_pixels[y * m_width + x] = color;
+        m_pixels[y * m_width + x].color += color;
+        m_pixels[y * m_width + x].sample_count ++;
 }

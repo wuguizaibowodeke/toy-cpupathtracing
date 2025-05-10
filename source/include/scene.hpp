@@ -1,12 +1,14 @@
 #pragma once
 
 #include "geometry/shape.hpp"
+#include "material.hpp"
 
 class Scene : public Shape
 {
     struct Instance
     {
-        const Shape *shape;
+        const Shape &shape;
+        Material material;
         glm::mat4 world_from_object;
         glm::mat4 object_from_world;
     };
@@ -16,7 +18,8 @@ public:
 
     virtual ~Scene();
 
-    void addInstance(const Shape *shape,
+    void addInstance(const Shape &shape,
+                     const Material &material = {},
                      const glm::vec3 &pos = {0, 0, 0},
                      const glm::vec3 &scale = {1, 1, 1},
                      const glm::vec3 &rotate = {0, 0, 0});

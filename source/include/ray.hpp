@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
+#include "material.hpp"
 
 struct Ray {
     glm::vec3 origin;
@@ -14,5 +15,6 @@ struct RayHitInfo {
     float t;
     glm::vec3 normal;
     glm::vec3 hit_point;
+    const Material *material = nullptr;
 };
 
