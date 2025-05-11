@@ -14,7 +14,7 @@ Camera::Camera(Film &film, const glm::vec3 &pos, const glm::vec3 &viewpoint, flo
     m_world_from_camera = glm::inverse(glm::lookAt(pos, viewpoint, {0, 1, 0}));
 }
 
-Ray Camera::generateRay(const glm::ivec2 &pixel_coord, const glm::vec2 &offset) const
+Ray Camera:: generateRay(const glm::ivec2 &pixel_coord, const glm::vec2 &offset) const
 {
     glm::vec2 ndc = (glm::vec2(pixel_coord) + offset) / glm::vec2(m_film.getWidth(), m_film.getHeight());
     ndc.y = 1.f - ndc.y;
