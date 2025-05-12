@@ -26,6 +26,8 @@ public:
 
     void addSample(size_t x, size_t y, const glm::vec3 &color);
 
+    void clear();
+
 private:
     size_t m_width, m_height;
 

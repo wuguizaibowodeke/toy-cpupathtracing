@@ -56,3 +56,9 @@ void Film::addSample(size_t x, size_t y, const glm::vec3 &color)
     m_pixels[y * m_width + x].color += color;
     m_pixels[y * m_width + x].sample_count++;
 }
+
+void Film::clear()
+{
+    m_pixels.clear();
+    m_pixels.resize(m_width * m_height);
+}

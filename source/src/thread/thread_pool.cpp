@@ -1,5 +1,6 @@
-
 #include "thread/thread_pool.hpp"
+
+ThreadPool thread_pool{};
 
 void ThreadPool::WorkerThread(ThreadPool *master)
 {

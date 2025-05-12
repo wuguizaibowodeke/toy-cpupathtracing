@@ -1,6 +1,3 @@
-#include "thread/thread_pool.hpp"
-#include "camera/film.hpp"
-#include "camera/camera.hpp"
 #include "geometry/sphere.hpp"
 #include "geometry/plane.hpp"
 #include "model/model.hpp"
@@ -8,14 +5,15 @@
 #include "model/material.hpp"
 #include "util/frame.hpp"
 #include "util/rgb.hpp"
+#include "util/progress.hpp"
+#include "renderers/normal_renderer.hpp"
+#include "renderers/simple_rt_renderer.hpp"
 
 #include <iostream>
 #include <random>
 
 int main()
 {
-    ThreadPool thread_pool{};
-
     Film film{192 * 4, 108 * 4};
     Camera camera{film, {-3.6, 0, 0}, {0, 0, 0}, 45};
     std::atomic<int> count = 0;
@@ -28,13 +26,13 @@ int main()
         {0, 0, 0},
         {0, 1, 0}};
 
-    RGB red{255, 0, 0};
-    RGB green{0, 255, 0};
-    RGB blue{0, 0, 255};
+    RGB color1(202, 159, 117);
+    RGB color2(255, 128, 128);
+    RGB color3(128, 128, 255);
 
-    Material red_material{glm::vec3{1, 1, 1}, red, false};
-    Material green_material{glm::vec3{1, 1, 1}, green, false};
-    Material blue_material{glm::vec3{1, 1, 1}, blue, false};
+    Material red_material{glm::vec3{1, 1, 1}, color1, false};
+    Material green_material{glm::vec3{1, 1, 1}, color2, false};
+    Material blue_material{glm::vec3{1, 1, 1}, color3, true};
 
     Scene scene{};
     scene.addInstance(model,
@@ -49,77 +47,15 @@ int main()
                       blue_material,
                       {0, 0, -2.5});
 
-    scene.addInstance(plane, {}, {0, -0.5, 0});
+    scene.addInstance(plane, {glm::vec3{1, 1, 1},RGB(120, 204, 157),false}, {0, -0.5, 0});
 
-    std::mt19937 gen(23451224);
-    std::uniform_real_distribution<float> uniform(-1, 1);
-    int spp = 1; // samples per pixel
+    NormalRenderer normal_renderer { camera, scene };
+    normal_renderer.render(1, "normal.ppm");
 
-    auto start = std::chrono::high_resolution_clock::now();
+    film.clear();
 
-    thread_pool.parallelFor(film.getWidth(), film.getHeight(), [&](size_t x, size_t y)
-                            {
-        for(int i = 0 ; i < spp; i++)
-        {
-            auto ray = camera.generateRay({ x, y },
-             {std::abs(uniform(gen)), std::abs(uniform(gen))});
-            glm::vec3 beta { 1, 1, 1 };
-            glm::vec3 color { 0, 0, 0 };
-            while(true)
-            {         
-                auto hit_info = scene.intersect(ray);
-                if (hit_info.has_value()) 
-                {
-                    color += beta * hit_info->material->getEmissive();
-                    beta *= hit_info->material->getAlbedo();
-
-                    ray.origin = hit_info->hit_point;
-                    Frame frame (hit_info->normal);
-                    glm::vec3 light_direction;
-                    if(hit_info->material->getEnableSpecular())
-                    {
-                        glm::vec3 view_direction = frame.localFromWorld(-ray.direction);
-                        light_direction = {-view_direction.x, view_direction.y, view_direction.z};
-                    }
-                    else
-                    {
-                        do
-                        {
-                            light_direction = {uniform(gen), uniform(gen), uniform(gen)};
-                        } 
-                        while (glm::length(light_direction) > 1.0f);
-                        if(light_direction.y < 0)
-                        {
-                            light_direction.y = -light_direction.y;
-                        }
-                    }
-                    ray.direction = frame.worldFromLocal(light_direction);
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            film.addSample(x, y, color);
-
-        }
-
-
-        int n = ++count;
-        if (n % film.getWidth() == 0) {
-            std::cout << static_cast<float>(n) / (film.getHeight() * film.getWidth()) << std::endl;
-        } });
-
-    thread_pool.wait();
-
-    auto end = std::chrono::high_resolution_clock::now();
-    // 计算耗时（单位：毫秒）
-    std::chrono::duration<double, std::milli> duration = end - start;
-    std::cout << "Function took " << duration.count() << " ms" << std::endl;
-
-    film.save("sandbox.ppm");
-    return 0;
+    SimpleRTRenderer simple_rt_renderer { camera, scene };
+    simple_rt_renderer.render(32, "simple_rt.ppm");
 }
 
 
