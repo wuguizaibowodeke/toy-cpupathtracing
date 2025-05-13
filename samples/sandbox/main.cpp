@@ -32,7 +32,7 @@ int main()
 
     Material red_material{glm::vec3{1, 1, 1}, color1, false};
     Material green_material{glm::vec3{1, 1, 1}, color2, false};
-    Material blue_material{glm::vec3{1, 1, 1}, color3, true};
+    Material blue_material{glm::vec3{1, 1, 1}, color3, false};
 
     Scene scene{};
     scene.addInstance(model,

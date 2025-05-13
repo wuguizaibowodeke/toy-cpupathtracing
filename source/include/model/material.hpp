@@ -21,7 +21,7 @@ private:
     // 反射光
     glm::vec3 m_albedo{1.0f, 1.0f, 1.0f};
     // 自发光
-    glm::vec3 m_emissive{1.0f, 1.0f, 1.0f};
+    glm::vec3 m_emissive{0.0f, 0.0f, 0.0f};
 
     bool m_is_specular{true};
 };

@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include "util/profile.hpp"
 
 Model::Model(const std::vector<Triangle> &triangles)
     : m_triangles(triangles)
@@ -10,6 +11,7 @@ Model::Model(const std::vector<Triangle> &triangles)
 
 Model::Model(const std::filesystem::path &filename)
 {
+    PROFILE("Load model" + filename.string())
     std::vector<glm::vec3> positions;
     std::vector<glm::vec3> normals;
 

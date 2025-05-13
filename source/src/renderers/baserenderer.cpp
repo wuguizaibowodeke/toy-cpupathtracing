@@ -1,6 +1,7 @@
 #include "renderers/baserenderer.hpp"
 #include "thread/thread_pool.hpp"   
 #include "util/progress.hpp"
+#include "util/profile.hpp"
 
 BaseRenderer::BaseRenderer(Camera &camera, Scene &scene)
 : m_camera(camera), m_scene(scene)
@@ -9,6 +10,7 @@ BaseRenderer::BaseRenderer(Camera &camera, Scene &scene)
 
 void BaseRenderer::render(size_t spp, const std::filesystem::path& path)
 {
+    PROFILE("Render " + std::to_string(spp) + "spp " + path.string())
     size_t current_spp = 0 , increase = 1;
     auto &film = m_camera.getFilm();
     Progress progress{film.getWidth() * spp * film.getHeight() * spp};
