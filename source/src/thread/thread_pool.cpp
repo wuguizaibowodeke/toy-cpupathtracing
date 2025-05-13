@@ -1,5 +1,6 @@
 #include "thread/thread_pool.hpp"
 #include "util/profile.hpp"
+#include <cmath>
 
 ThreadPool thread_pool{};
 
@@ -51,16 +52,22 @@ ThreadPool::~ThreadPool()
 class ParallelForTask : public Task
 {
 public:
-    ParallelForTask(size_t x, size_t y, const std::function<void(size_t, size_t)> &lambda)
-        : x(x), y(y), lambda(lambda) {}
+    ParallelForTask(size_t x, size_t y, size_t chunk_width, size_t chunk_height ,const std::function<void(size_t, size_t)> &lambda)
+        : x(x), y(y), chunk_width(chunk_width),chunk_height(chunk_height),lambda(lambda) {}
 
     void run() override
     {
-        lambda(x, y);
+        for(size_t idx_x = x; idx_x < x + chunk_width; idx_x++)
+        {
+            for(size_t idx_y = y; idx_y < y + chunk_height; idx_y++)
+            {
+                lambda(idx_x, idx_y);
+            }
+        }
     }
 
 private:
-    size_t x, y;
+    size_t x, y, chunk_width, chunk_height;
     std::function<void(size_t, size_t)> lambda;
 };
 
@@ -69,12 +76,25 @@ void ThreadPool::parallelFor(size_t width, size_t height, const std::function<vo
     PROFILE("parallelFor")
     Guard guard(spin_lock);
 
-    for (size_t x = 0; x < width; x++)
+    float chunk_width_float = static_cast<float>(width) / std::sqrt(16) / std::sqrt(threads.size());
+    float chunk_height_float = static_cast<float>(height) / std::sqrt(16) / std::sqrt(threads.size());
+    size_t chunk_width = std::ceil(chunk_width_float);
+    size_t chunk_height = std::ceil(chunk_height_float);
+    
+    for (size_t x = 0; x < width; x+= chunk_width)
     {
-        for (size_t y = 0; y < height; y++)
+        for (size_t y = 0; y < height; y+=chunk_height)
         {
             pengding_task_count++;
-            tasks.push(new ParallelForTask(x, y, lambda));
+            if(x + chunk_width > width)
+            {
+                chunk_width = width - x;
+            }
+            if(y + chunk_height > height)
+            {
+                chunk_height = height - y;
+            }
+            tasks.push(new ParallelForTask(x, y, chunk_width, chunk_height, lambda));
         }
     }
 }

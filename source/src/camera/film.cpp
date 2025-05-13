@@ -2,6 +2,7 @@
 #include "util/rgb.hpp"
 #include <fstream>
 #include "util/profile.hpp"
+#include "thread/thread_pool.hpp"
 
 Film::Film(size_t width, size_t height)
     : m_width(width), m_height(height)
@@ -25,17 +26,21 @@ void Film::save(const std::filesystem::path &filename)
     // Write PPM header
     file << "P6\n"
          << m_width << ' ' << m_height << "\n255\n";
-    for (size_t y = 0; y < m_height; ++y)
+
+    std::vector<uint8_t> buffer(m_width * m_height * 3);
+    
+    thread_pool.parallelFor(m_width, m_height, [&](size_t x, size_t y)
     {
-        for (size_t x = 0; x < m_width; ++x)
-        {
-            auto pixel = getPixel(x, y);
-            RGB rgb(pixel.color / static_cast<float>(pixel.sample_count));
-            file << static_cast<uint8_t>(rgb.r)
-                 << static_cast<uint8_t>(rgb.g)
-                 << static_cast<uint8_t>(rgb.b);
-        }
-    }
+        auto pixel = getPixel(x, y);
+        RGB rgb(pixel.color / static_cast<float>(pixel.sample_count));
+        auto idx = (y * m_width + x) * 3;
+        buffer[idx] = static_cast<uint8_t>(rgb.r);
+        buffer[idx + 1] = static_cast<uint8_t>(rgb.g);
+        buffer[idx + 2] = static_cast<uint8_t>(rgb.b);
+    });
+    thread_pool.wait();
+
+    file.write(reinterpret_cast<const char *>(buffer.data()), buffer.size());
 }
 
 size_t Film::getWidth() const

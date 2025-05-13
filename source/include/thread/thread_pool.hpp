@@ -9,6 +9,7 @@
 class Task
 {
 public:
+    virtual ~Task() = default;
     virtual void run() = 0;
 };
 
