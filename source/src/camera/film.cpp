@@ -1,7 +1,6 @@
 #include "camera/film.hpp"
 #include "util/rgb.hpp"
 #include <fstream>
-#include "util/profile.hpp"
 #include "thread/thread_pool.hpp"
 
 Film::Film(size_t width, size_t height)
@@ -16,7 +15,6 @@ Film::~Film()
 
 void Film::save(const std::filesystem::path &filename)
 {
-    PROFILE("Save film to " + filename.string())
     std::ofstream file(filename, std::ios::binary);
     if (!file.is_open())
     {

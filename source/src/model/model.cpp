@@ -2,20 +2,19 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include "util/profile.hpp"
 #include <rapidobj/rapidobj.hpp>
 
 Model::Model(const std::vector<Triangle> &triangles)
-    : m_triangles(triangles)
 {
-    calculateBound();
+    auto ts = triangles;
+    m_bvh = BVH(std::move(ts));
 }
 
 Model::Model(const std::filesystem::path &filename)
 {
-    PROFILE("Load model" + filename.string())
-
     auto result = rapidobj::ParseFile(filename, rapidobj::MaterialLibrary::Ignore());
+
+    std::vector<Triangle> triangles;
 
     for (const auto &shape : result.shapes)
     {
@@ -57,12 +56,12 @@ Model::Model(const std::filesystem::path &filename)
                         result.attributes.normals[index.normal_index * 3 + 0],
                         result.attributes.normals[index.normal_index * 3 + 1],
                         result.attributes.normals[index.normal_index * 3 + 2]};
-                    m_triangles.push_back(Triangle{
+                    triangles.push_back(Triangle{
                         pos0, pos1, pos2, normal0, normal1, normal2});
                 }
                 else
                 {
-                    m_triangles.push_back(Triangle{
+                    triangles.push_back(Triangle{
                         pos0, pos1, pos2});
                 }
             }
@@ -70,36 +69,10 @@ Model::Model(const std::filesystem::path &filename)
         }
     }
 
-    calculateBound();
+    m_bvh = BVH(std::move(triangles));
 }
 
 std::optional<RayHitInfo> Model::intersect(const Ray &ray, float t_min, float t_max) const
 {
-    if (!m_bound.isIntersect(ray, t_min, t_max))
-    {
-        return std::nullopt;
-    }
-
-    std::optional<RayHitInfo> closest_hitinfo{};
-
-    for (auto &triangle : m_triangles)
-    {
-        auto hitinfo = triangle.intersect(ray, t_min, t_max);
-        if (hitinfo.has_value())
-        {
-            t_max = hitinfo->t;
-            closest_hitinfo = hitinfo;
-        }
-    }
-    return closest_hitinfo;
-}
-
-void Model::calculateBound()
-{
-    for (const auto &triangle : m_triangles)
-    {
-        m_bound.expand(triangle.getVertex(0));
-        m_bound.expand(triangle.getVertex(1));
-        m_bound.expand(triangle.getVertex(2));
-    }
+    return m_bvh.intersect(ray, t_min, t_max);
 }

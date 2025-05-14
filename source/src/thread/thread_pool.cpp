@@ -1,5 +1,4 @@
 #include "thread/thread_pool.hpp"
-#include "util/profile.hpp"
 #include <cmath>
 
 ThreadPool thread_pool{};
@@ -13,6 +12,8 @@ void ThreadPool::WorkerThread(ThreadPool *master)
         {
             task->run();
             master->pengding_task_count--;
+            delete task;
+            task = nullptr;
         }
         else
         {
@@ -73,7 +74,6 @@ private:
 
 void ThreadPool::parallelFor(size_t width, size_t height, const std::function<void(size_t, size_t)> &lambda)
 {
-    PROFILE("parallelFor")
     Guard guard(spin_lock);
 
     float chunk_width_float = static_cast<float>(width) / std::sqrt(16) / std::sqrt(threads.size());

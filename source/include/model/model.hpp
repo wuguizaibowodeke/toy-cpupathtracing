@@ -2,7 +2,7 @@
 
 #include "geometry/triangle.hpp"
 #include <filesystem>
-#include "accelerate/bound.hpp"
+#include "accelerate/bvh.hpp"
 
 class Model : public Shape
 {
@@ -15,11 +15,7 @@ public:
 
     std::optional<RayHitInfo> intersect(const Ray &ray, float t_min,
                                         float t_max) const override;
-
+                          
 private:
-    void calculateBound();                                       
-
-private:
-    std::vector<Triangle> m_triangles;
-    Bound m_bound;
+    BVH m_bvh{};
 };
