@@ -15,10 +15,12 @@ option(BUILD_SAMPLES "Build sample programs" OFF)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm
+    ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/rapidobj/include
 )
 
 add_subdirectory(source)
 add_subdirectory(thirdparty/glm)
+add_subdirectory(thirdparty/rapidobj)
 
 add_subdirectory(samples/sandbox)
 

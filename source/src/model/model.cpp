@@ -7,6 +7,7 @@
 Model::Model(const std::vector<Triangle> &triangles)
     : m_triangles(triangles)
 {
+    calculateBound();
 }
 
 Model::Model(const std::filesystem::path &filename)
@@ -60,10 +61,17 @@ Model::Model(const std::filesystem::path &filename)
                 normals[idx_vn.z - 1]));
         }
     }
+
+    calculateBound();
 }
 
 std::optional<RayHitInfo> Model::intersect(const Ray &ray, float t_min, float t_max) const
 {
+    if (!m_bound.isIntersect(ray, t_min, t_max))
+    {
+        return std::nullopt;
+    }
+
     std::optional<RayHitInfo> closest_hitinfo{};
 
     for (auto &triangle : m_triangles)
@@ -76,4 +84,14 @@ std::optional<RayHitInfo> Model::intersect(const Ray &ray, float t_min, float t_
         }
     }
     return closest_hitinfo;
+}
+
+void Model::calculateBound()
+{
+    for(const auto &triangle : m_triangles)
+    {
+        m_bound.expand(triangle.getVertex(0));
+        m_bound.expand(triangle.getVertex(1));
+        m_bound.expand(triangle.getVertex(2));
+    }
 }

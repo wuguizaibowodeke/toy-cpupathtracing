@@ -15,6 +15,9 @@ public:
     std::optional<RayHitInfo> intersect(const Ray &ray, float t_min,
                                         float t_max) const override;
 
+    glm::vec3 getVertex(int index) const;
+
+    glm::vec3 getNormal(int index) const;
 private:
     // 顶点坐标
     glm::vec3 v0, v1, v2;

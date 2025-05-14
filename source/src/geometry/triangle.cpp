@@ -50,3 +50,50 @@ std::optional<RayHitInfo> Triangle::intersect(const Ray &ray, float t_min, float
 
     return std::nullopt;
 }
+glm::vec3 Triangle::getVertex(int index) const
+{
+    if(index > 2 || index < 0)
+    {
+        std::cerr << "Triangle::getVertex: index out of range" << std::endl;
+        return glm::vec3();
+    }
+
+    if (index == 0)
+    {
+        return v0;
+    }
+    else if (index == 1)
+    {
+        return v1;
+    }
+    else if (index == 2)
+    {
+        return v2;
+    }
+
+    return glm::vec3();
+}
+
+glm::vec3 Triangle::getNormal(int index) const
+{
+    if(index > 2 || index < 0)
+    {
+        std::cerr << "Triangle::getNormal: index out of range" << std::endl;
+        return glm::vec3();
+    }
+
+    if (index == 0)
+    {
+        return normal0;
+    }
+    else if (index == 1)
+    {
+        return normal1;
+    }
+    else if (index == 2)
+    {
+        return normal2;
+    }
+
+    return glm::vec3();
+}
