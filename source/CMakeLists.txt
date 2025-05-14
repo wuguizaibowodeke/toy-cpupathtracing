@@ -7,4 +7,4 @@ target_compile_definitions(CPUPathTracing PUBLIC
     -DGLM_FORCE_RADIANS
     -DGLM_FORCE_LEFT_HANDED
 )
-target_link_libraries(CPUPathTracing glm stdc++fs)
+target_link_libraries(CPUPathTracing glm stdc++fs rapidobj)
