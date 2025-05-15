@@ -3,6 +3,7 @@
 #include <chrono>
 #include <string>
 #include <iostream>
+#include "log.hpp"
 
 #define PROFILE(name) Profile __profile(name);
 
@@ -19,7 +20,8 @@ public:
     {
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - m_start_time).count();
-        std::cout << m_name << " took " << duration << " ms" << std::endl;
+        LOG_I("Profile: {} took {} ms", m_name, duration);
+        //std::cout << m_name << " took " << duration << " ms" << std::endl;
     }
 
 

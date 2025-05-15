@@ -2,6 +2,7 @@
 #include "thread/thread_pool.hpp"   
 #include "util/progress.hpp"
 #include "util/profile.hpp"
+#include "log.hpp"
 
 BaseRenderer::BaseRenderer(Camera &camera, Scene &scene)
 : m_camera(camera), m_scene(scene)
@@ -30,6 +31,7 @@ void BaseRenderer::render(size_t spp, const std::filesystem::path& path)
         increase = std::min(current_spp, static_cast<size_t>(32));
 
         film.save(path);
-        std::cout << current_spp << "spp has been saved to " << path << std::endl;
+        //std::cout << current_spp << "spp has been saved to " << path << std::endl;
+        LOG_I("Render {} spp has been saved to {}", current_spp, path.string());
     }
 }

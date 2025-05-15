@@ -12,8 +12,11 @@
 #include <iostream>
 #include <random>
 
+#include "log.hpp"
+
 int main()
 {
+    Logger::Init();
     Film film{192 * 4, 108 * 4};
     Camera camera{film, {-3.6, 0, 0}, {0, 0, 0}, 45};
     std::atomic<int> count = 0;

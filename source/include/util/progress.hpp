@@ -2,7 +2,7 @@
 
 #include "thread/spin_lock.hpp"
 #include <iostream>
-
+#include "log.hpp"
 class Progress
 {
     public:
@@ -13,7 +13,7 @@ class Progress
 
         ~Progress()
         {
-            printf("\rProgress: 100%%\n");
+            //printf("\rProgress: 100%%\n");
         }
 
         void update(size_t count)
@@ -23,7 +23,8 @@ class Progress
             if (m_percent - m_last_percent >= m_step || m_percent == 100)
             {
                 m_last_percent = m_percent;
-                std::cout << "\rProgress: " << m_percent << "%";
+                //std::cout << "\rProgress: " << m_percent << "%";
+                LOG_I("Progress: {}%", m_percent);
             }
         }
 
