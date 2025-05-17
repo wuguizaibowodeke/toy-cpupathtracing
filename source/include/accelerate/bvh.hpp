@@ -3,12 +3,13 @@
 #include "bound.hpp"
 #include "geometry/triangle.hpp"
 
-struct BVHNode
+struct BVHTreeNode
 {
     Bound bound{};
     std::vector<Triangle> triangles{};
-    BVHNode *left = nullptr;
-    BVHNode *right = nullptr;
+    BVHTreeNode *left = nullptr;
+    BVHTreeNode *right = nullptr;
+    size_t depth;
 
     void updateBound()
     {
@@ -21,6 +22,19 @@ struct BVHNode
         }
     }
 };
+
+struct alignas(32) BVHNode
+{
+    Bound bound{};
+    union
+    {
+        int child_index;
+        int triangle_index;
+    };   
+    uint16_t triangle_count;
+    uint8_t depth;
+};
+
 
 class BVH : public Shape
 {
@@ -38,14 +52,11 @@ public:
 private:
     void build(const std::vector<Triangle> &triangles);
 
-    void recursiveSplit(BVHNode *node);
+    void recursiveSplit(BVHTreeNode *node);
 
-    void recursiveIntersect(const Ray &ray,
-                                float t_min,
-                                float t_max,
-                                BVHNode *node,
-                                std::optional<RayHitInfo> &closest_hitinfo) const;
+    size_t flattenTree(BVHTreeNode *node);
 
 private:
-    BVHNode *m_root;
+    std::vector<BVHNode> m_nodes;
+    std::vector<Triangle> m_triangles;
 };
