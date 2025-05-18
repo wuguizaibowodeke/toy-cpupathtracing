@@ -8,8 +8,7 @@ SimpleRTRenderer::SimpleRTRenderer(Camera &camera, Scene &scene)
 
 glm::vec3 SimpleRTRenderer::renderPixel(const glm::ivec2 &pixel_coord)
 {
-    auto ray = m_camera.generateRay(pixel_coord,
-                                  {std::abs(m_rng.uniform()), std::abs(m_rng.uniform())});
+    auto ray = m_camera.generateRay(pixel_coord, {m_rng.uniform(), m_rng.uniform()});
     glm::vec3 beta{1, 1, 1};
     glm::vec3 color{0, 0, 0};
     while (true)
@@ -34,8 +33,8 @@ glm::vec3 SimpleRTRenderer::renderPixel(const glm::ivec2 &pixel_coord)
                 {
                     light_direction = {m_rng.uniform(), m_rng.uniform(), m_rng.uniform()};
                     light_direction = light_direction * 2.f - 1.f;
-                }while (glm::length(light_direction) > 1.0f);
-                
+                } while (glm::length(light_direction) > 1.0f);
+
                 if (light_direction.y < 0)
                 {
                     light_direction.y = -light_direction.y;
@@ -48,6 +47,6 @@ glm::vec3 SimpleRTRenderer::renderPixel(const glm::ivec2 &pixel_coord)
             break;
         }
     }
-    
+
     return color;
 }

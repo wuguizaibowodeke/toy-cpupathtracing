@@ -1,7 +1,8 @@
+
 #include "model/material.hpp"
 
 Material::Material()
-    : m_albedo(1.0f, 1.0f, 1.0f), m_emissive(1.0f, 1.0f, 1.0f), m_is_specular(32.0f)
+    : m_albedo(1.0f, 1.0f, 1.0f), m_emissive(0.0f, 0.0f, 0.0f), m_is_specular(false)
 {
 }
 

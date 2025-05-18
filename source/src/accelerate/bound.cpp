@@ -69,7 +69,7 @@ bool Bound::isIntersect(const Ray &ray, float t_min, float t_max) const
     float near = glm::max(t_min_vec.x, glm::max(t_min_vec.y, t_min_vec.z));
     float far = glm::min(t_max_vec.x, glm::min(t_max_vec.y, t_max_vec.z));
 
-    if (near <= t_min && far >= t_min)
+    if (near <= t_min && far >= t_max)
     {
         return false;
     }

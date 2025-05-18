@@ -8,6 +8,7 @@
 #include "util/progress.hpp"
 #include "renderers/normal_renderer.hpp"
 #include "renderers/simple_rt_renderer.hpp"
+#include "renderers/debug_renderer.hpp"
 
 #include <iostream>
 #include <random>
@@ -18,10 +19,11 @@ int main()
 {
     Logger::Init();
     Film film{192 * 4, 108 * 4};
-    Camera camera{film, {-3.6, 0, 0}, {0, 0, 0}, 45};
+    Camera camera{film, {3.6, 0, 0}, {0, 0, 0}, 45};
     std::atomic<int> count = 0;
 
-    Model model("asset/models/simple_dragon.obj");
+    Model model("asset/models/dragon_87k.obj");
+    //Model model("asset/models/simple_dragon.obj");
     Sphere sphere{
         {0, 0, 0},
         1.0f};
@@ -33,32 +35,50 @@ int main()
     RGB color2(255, 128, 128);
     RGB color3(128, 128, 255);
 
-    Material red_material{glm::vec3{1, 1, 1}, color1, false};
-    Material green_material{glm::vec3{1, 1, 1}, color2, false};
-    Material blue_material{glm::vec3{1, 1, 1}, color3, false};
+    RGB r = RGB(255, 0, 0);
 
-    Scene scene{};
-    scene.addInstance(model,
-                      red_material,
-                      {0, 0, 0});
 
-    scene.addInstance(sphere,
-                      green_material,
-                      {0, 0, 2.5});
+    Material red_material{color1, {0, 0, 0} , false};
+    Material green_material{{1,1,1},color2, false};
+    Material blue_material{{1,1,1},color3, true};
 
-    scene.addInstance(sphere,
-                      blue_material,
-                      {0, 0, -2.5});
+    Scene scene {};
+    scene.addInstance(
+        model,
+        red_material,
+        { 0, 0, 0 },
+        { 1, 3, 2 }
+    );
+    
+    
+    scene.addInstance(
+        sphere,
+        green_material,
+        { 0, 0, 2.5 }
+    );
+    scene.addInstance(
+        sphere,
+        blue_material,
+        { 0, 0, -2.5 }
+    );
 
-    scene.addInstance(plane, {glm::vec3{1, 1, 1},RGB(120, 204, 157),false}, {0, -0.5, 0});
-
-    NormalRenderer normal_renderer { camera, scene };
+    NormalRenderer normal_renderer{camera, scene};
     normal_renderer.render(1, "normal.ppm");
 
-    film.clear();
+    const size_t spp = 16;
 
-    SimpleRTRenderer simple_rt_renderer { camera, scene };
-    simple_rt_renderer.render(32, "simple_rt.ppm");
+#if(1)
+    BoundsTestCountRenderer bounds_test_count_renderer{camera, scene};
+    bounds_test_count_renderer.render(1, "bounds_test_count.ppm");
+
+    TriangleTestCountRenderer triangle_test_count_renderer{camera, scene};
+    triangle_test_count_renderer.render(1, "triangle_test_count.ppm");
+
+    BoundsDepthRenderer bounds_depth_renderer{camera, scene};
+    bounds_depth_renderer.render(1, "bounds_depth.ppm");
+#endif
+
+    SimpleRTRenderer simple_rt_renderer{camera, scene};
+    simple_rt_renderer.render(spp, "simple_rt.ppm");
+
 }
-
-

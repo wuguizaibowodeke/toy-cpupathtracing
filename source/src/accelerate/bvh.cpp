@@ -1,5 +1,8 @@
 #include "accelerate/bvh.hpp"
 #include <array>
+#include "util/debug_macro.hpp"
+#include <iostream>
+#include "log.hpp"
 
 BVH::BVH(const std::vector<Triangle> &triangles)
 {
@@ -16,6 +19,9 @@ std::optional<RayHitInfo> BVH::intersect(const Ray &ray,
 {
     std::optional<RayHitInfo> closest_hitinfo;
 
+    DEBUG_LINE(size_t bounds_test_count = 0)
+    DEBUG_LINE(size_t triangle_test_count = 0)
+
     std::array<int, 32> stack;
     auto it = stack.begin();
     size_t cuurent_index = 0;
@@ -23,6 +29,7 @@ std::optional<RayHitInfo> BVH::intersect(const Ray &ray,
     while (true)
     {
         auto &node = m_nodes[cuurent_index];
+        DEBUG_LINE(bounds_test_count++;)
         if (!node.bound.isIntersect(ray, t_min, t_max))
         {
             if (it == stack.begin())
@@ -41,6 +48,7 @@ std::optional<RayHitInfo> BVH::intersect(const Ray &ray,
         else
         {
             auto triangle_index = m_triangles.begin() + node.triangle_index;
+            DEBUG_LINE(triangle_test_count += node.triangle_count)
             for (size_t i = 0; i < node.triangle_count; ++i)
             {
                 auto hitinfo = triangle_index->intersect(ray, t_min, t_max);
@@ -49,6 +57,7 @@ std::optional<RayHitInfo> BVH::intersect(const Ray &ray,
                 {
                     t_max = hitinfo->t;
                     closest_hitinfo = hitinfo;
+                    DEBUG_LINE(closest_hitinfo->bounds_depth = node.depth)
                 }
             }
             if (it == stack.begin())
@@ -58,6 +67,14 @@ std::optional<RayHitInfo> BVH::intersect(const Ray &ray,
             cuurent_index = *(--it);
         }
     }
+
+#ifdef WITH_DEBUG_INFO
+    if (closest_hitinfo.has_value())
+    {
+        closest_hitinfo->bounds_test_count = bounds_test_count;
+        closest_hitinfo->triangle_test_count = triangle_test_count;
+    }
+#endif
 
     return closest_hitinfo;
 }
@@ -70,11 +87,12 @@ void BVH::build(const std::vector<Triangle> &triangles)
     root->depth = 1;
     recursiveSplit(root);
     flattenTree(root);
+    delete root;
 }
 
 void BVH::recursiveSplit(BVHTreeNode *node)
 {
-    if (node->triangles.size() == 1)
+    if (node->triangles.size() == 1 || node->depth > 32)
     {
         return;
     }
@@ -85,7 +103,11 @@ void BVH::recursiveSplit(BVHTreeNode *node)
     std::vector<Triangle> left_triangles, right_triangles;
     for (const auto &triangle : node->triangles)
     {
-        if (triangle.getVertex(0)[max_axis] < mid)
+        auto average = (triangle.getVertex(0)[max_axis] +
+                        triangle.getVertex(1)[max_axis] +
+                        triangle.getVertex(2)[max_axis]) /
+                       3.0f;
+        if (average < mid)
         {
             left_triangles.push_back(triangle);
         }
@@ -100,16 +122,15 @@ void BVH::recursiveSplit(BVHTreeNode *node)
         return;
     }
 
+    node->triangles.clear();
+    node->triangles.shrink_to_fit();
+    
     node->left = new BVHTreeNode();
-    node->left->triangles.clear();
-    node->left->triangles.shrink_to_fit();
     node->left->triangles = std::move(left_triangles);
     node->left->updateBound();
     node->left->depth = node->depth + 1;
 
     node->right = new BVHTreeNode();
-    node->right->triangles.clear();
-    node->right->triangles.shrink_to_fit();
     node->right->triangles = std::move(right_triangles);
     node->right->updateBound();
     node->right->depth = node->depth + 1;
@@ -127,7 +148,7 @@ size_t BVH::flattenTree(BVHTreeNode *node)
 
     BVHNode bvh_node{node->bound,
                      0,
-                     static_cast<uint16_t>(node->triangles.size()),
+                     static_cast<int>(node->triangles.size()),
                      static_cast<uint8_t>(node->depth)};
     auto index = m_nodes.size();
     m_nodes.push_back(bvh_node);

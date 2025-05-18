@@ -16,7 +16,7 @@ std::optional<RayHitInfo> Sphere::intersect(const Ray &ray, float t_min, float t
     float delta = b * b - 4.f * a * c;
     if (delta < 0)
     {
-        return std::nullopt;
+        return {};
     }
 
     float hit_t = (-b - sqrt(delta)) * 0.5f / a;
@@ -31,5 +31,5 @@ std::optional<RayHitInfo> Sphere::intersect(const Ray &ray, float t_min, float t
         return RayHitInfo{hit_t, normal, hit_point};
     }
 
-    return std::nullopt;
+    return {};
 }

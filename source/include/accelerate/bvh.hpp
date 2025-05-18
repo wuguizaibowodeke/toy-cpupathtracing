@@ -23,7 +23,7 @@ struct BVHTreeNode
     }
 };
 
-struct alignas(32) BVHNode
+struct /*alignas(32)*/ BVHNode
 {
     Bound bound{};
     union
@@ -31,7 +31,7 @@ struct alignas(32) BVHNode
         int child_index;
         int triangle_index;
     };   
-    uint16_t triangle_count;
+    int triangle_count;
     uint8_t depth;
 };
 

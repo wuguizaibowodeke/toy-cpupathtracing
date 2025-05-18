@@ -14,7 +14,8 @@ void BaseRenderer::render(size_t spp, const std::filesystem::path& path)
     PROFILE("Render " + std::to_string(spp) + "spp " + path.string())
     size_t current_spp = 0 , increase = 1;
     auto &film = m_camera.getFilm();
-    Progress progress{film.getWidth() * spp * film.getHeight() * spp};
+    film.clear();
+    Progress progress{film.getWidth() * spp * film.getHeight() * spp, 20};
     while(current_spp < spp)
     {
         auto signalPixelColor = [&](size_t x, size_t y)
@@ -28,7 +29,7 @@ void BaseRenderer::render(size_t spp, const std::filesystem::path& path)
         thread_pool.parallelFor(film.getWidth(), film.getHeight(), signalPixelColor);
         thread_pool.wait();
         current_spp += increase;
-        increase = std::min(current_spp, static_cast<size_t>(32));
+        increase = std::min<size_t>(current_spp, 32);
 
         film.save(path);
         //std::cout << current_spp << "spp has been saved to " << path << std::endl;

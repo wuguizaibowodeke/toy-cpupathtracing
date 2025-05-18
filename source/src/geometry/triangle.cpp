@@ -30,14 +30,14 @@ std::optional<RayHitInfo> Triangle::intersect(const Ray &ray, float t_min, float
     float u = glm::dot(s1, s) * inv_det;
     if (u < 0 || u > 1)
     {
-        return std::nullopt;
+        return {};
     }
 
     glm::vec3 s2 = glm::cross(s, edge1);
     float v = glm::dot(s2, ray.direction) * inv_det;
     if (v < 0 || u + v > 1)
     {
-        return std::nullopt;
+        return {};
     }
 
     float t = glm::dot(s2, edge2) * inv_det;
@@ -48,7 +48,7 @@ std::optional<RayHitInfo> Triangle::intersect(const Ray &ray, float t_min, float
         return RayHitInfo{t, glm::normalize(normal), hit_point};
     }
 
-    return std::nullopt;
+    return {};
 }
 glm::vec3 Triangle::getVertex(int index) const
 {
