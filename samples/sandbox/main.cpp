@@ -22,7 +22,7 @@ int main()
     Camera camera{film, {3.6, 0, 0}, {0, 0, 0}, 45};
     std::atomic<int> count = 0;
 
-    Model model("asset/models/dragon_87k.obj");
+    Model model("asset/models/dragon_871k.obj");
     //Model model("asset/models/simple_dragon.obj");
     Sphere sphere{
         {0, 0, 0},
@@ -65,7 +65,7 @@ int main()
     NormalRenderer normal_renderer{camera, scene};
     normal_renderer.render(1, "normal.ppm");
 
-    const size_t spp = 16;
+    const size_t spp = 64;
 
 #if(1)
     BoundsTestCountRenderer bounds_test_count_renderer{camera, scene};

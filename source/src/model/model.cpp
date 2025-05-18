@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <rapidobj/rapidobj.hpp>
+#include "util/profile.hpp"
 
 Model::Model(const std::vector<Triangle> &triangles)
 {
@@ -12,6 +13,7 @@ Model::Model(const std::vector<Triangle> &triangles)
 
 Model::Model(const std::filesystem::path &filename)
 {
+    PROFILE("Model::Model");
     auto result = rapidobj::ParseFile(filename, rapidobj::MaterialLibrary::Ignore());
 
     std::vector<Triangle> triangles;

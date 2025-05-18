@@ -23,13 +23,20 @@ public:
     
     void expand(const glm::vec3 &point);
 
+    void expand(const Bound &other);
+    
     bool isIntersect(const Bound &other) const;
 
     bool isIntersect(const glm::vec3 &point) const;
 
     bool isIntersect(const Ray &ray, float t_min, float t_max) const;
 
+    bool isIntersect(const Ray &ray, glm::vec3 inv_dir, float t_min, float t_max) const;
+
     glm::vec3 diagonal() const;
+
+    float area() const;
+
 private:
     glm::vec3 m_leftBottom;
     glm::vec3 m_rightTop;

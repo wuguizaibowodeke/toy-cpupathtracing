@@ -45,6 +45,12 @@ void Bound::expand(const glm::vec3 &point)
     m_rightTop = glm::max(m_rightTop, point);
 }
 
+void Bound::expand(const Bound &other)
+{
+    m_leftBottom = glm::min(m_leftBottom, other.m_leftBottom);
+    m_rightTop = glm::max(m_rightTop, other.m_rightTop);
+}
+
 bool Bound::isIntersect(const Bound &other) const
 {
     return !(m_leftBottom.x > other.m_rightTop.x || m_rightTop.x < other.m_leftBottom.x ||
@@ -80,7 +86,34 @@ bool Bound::isIntersect(const Ray &ray, float t_min, float t_max) const
     return near <= far;
 }
 
+bool Bound::isIntersect(const Ray &ray, glm::vec3 inv_dir, float t_min, float t_max) const
+{
+    glm::vec3 t1 = (m_leftBottom - ray.origin) * inv_dir;
+    glm::vec3 t2 = (m_rightTop - ray.origin)  * inv_dir;
+    glm::vec3 t_min_vec = glm::min(t1, t2);
+    glm::vec3 t_max_vec = glm::max(t1, t2);
+
+    float near = glm::max(t_min_vec.x, glm::max(t_min_vec.y, t_min_vec.z));
+    float far = glm::min(t_max_vec.x, glm::min(t_max_vec.y, t_max_vec.z));
+
+    if (near <= t_min && far >= t_max)
+    {
+        return false;
+    }
+
+    near = glm::max(near, t_min);
+    far = glm::min(far, t_max);
+
+    return near <= far;
+}
+
 glm::vec3 Bound::diagonal() const
 {
     return m_rightTop - m_leftBottom;
+}
+
+float Bound::area() const
+{
+    auto diag = diagonal();
+    return 2.0f * (diag.x * diag.y + diag.x * diag.z + diag.y * diag.z);
 }
