@@ -1,6 +1,7 @@
 #pragma once
 
 #include "camera/ray.hpp"
+#include "accelerate/bound.hpp"
 #include <optional>
 
 class Shape
@@ -12,4 +13,9 @@ public:
         const Ray &ray,
         float t_min = 1e-5,
         float t_max = std::numeric_limits<float>::infinity()) const = 0;
+    
+    virtual Bound getBound() const
+    {
+        return {};
+    }
 };

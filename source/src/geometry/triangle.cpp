@@ -74,6 +74,15 @@ glm::vec3 Triangle::getVertex(int index) const
     return glm::vec3();
 }
 
+Bound Triangle::getBound() const
+{
+    Bound bound{};
+    bound.expand(v0);
+    bound.expand(v1);
+    bound.expand(v2);
+    return bound;
+}
+
 glm::vec3 Triangle::getNormal(int index) const
 {
     if(index > 2 || index < 0)

@@ -33,3 +33,8 @@ std::optional<RayHitInfo> Sphere::intersect(const Ray &ray, float t_min, float t
 
     return {};
 }
+
+Bound Sphere::getBound() const
+{
+    return Bound(center - glm::vec3(radius), center + glm::vec3(radius));
+}

@@ -72,7 +72,6 @@ std::optional<RayHitInfo> BVH::intersect(const Ray &ray,
                 {
                     t_max = hitinfo->t;
                     closest_hitinfo = hitinfo;
-                    DEBUG_LINE(closest_hitinfo->bounds_depth = node.depth)
                 }
             }
             if (it == stack.begin())
@@ -84,19 +83,26 @@ std::optional<RayHitInfo> BVH::intersect(const Ray &ray,
     }
 
 #ifdef WITH_DEBUG_INFO
-    if (closest_hitinfo.has_value())
-    {
-        closest_hitinfo->bounds_test_count = bounds_test_count;
-        closest_hitinfo->triangle_test_count = triangle_test_count;
-    }
+    ray.bounds_test_count = bounds_test_count;
+    ray.triangle_test_count = triangle_test_count;
 #endif
 
     return closest_hitinfo;
 }
 
+Bound BVH::getBound() const
+{
+    if (!m_nodes.empty())
+    {
+        return m_nodes[0].bound;
+    }
+
+    return {};
+}
+
 void BVH::build(const std::vector<Triangle> &triangles)
 {
-    auto* root = new BVHTreeNode{};
+    auto* root = m_node_allocator.allocate();
     root->triangles = std::move(triangles);
     root->updateBound();
     root->depth = 1;
@@ -109,6 +115,8 @@ void BVH::build(const std::vector<Triangle> &triangles)
     LOG_D("Triangle Count: {}", triangle_count);
     LOG_D("Mean Leaf Node Triangle Count: {}", static_cast<float>(triangle_count) / static_cast<float>(state.leaf_node_count));
     LOG_D("Max Leaf Node Triangle Count: {}", state.max_leaf_node_triangle_count);
+    LOG_D("Max Leaf Node Depth: {}", state.max_leaf_node_depth);
+
     m_nodes.reserve(state.total_node_count);
     m_triangles.reserve(triangle_count);
     flattenTree(root);
@@ -195,7 +203,7 @@ void BVH::recursiveSplit(BVHTreeNode *node, BVHState &state)
         return;
     }
 
-    node->left = new BVHTreeNode{};
+    node->left = new BVHTreeNode();
     node->left->depth = node->depth + 1;
     node->left->triangles.reserve(min_left_triangle_count);
     for(size_t i = 0; i < min_split_index; ++i)
@@ -207,7 +215,7 @@ void BVH::recursiveSplit(BVHTreeNode *node, BVHState &state)
     }
     node->left->bound = min_leftnode_bound;
 
-    node->right = new BVHTreeNode{};
+    node->right = new BVHTreeNode();
     node->right->depth = node->depth + 1;
     node->right->triangles.reserve(min_right_triangle_count);
     for(size_t i = min_split_index; i < bucket_count; ++i)
@@ -236,7 +244,6 @@ size_t BVH::flattenTree(BVHTreeNode *node)
     BVHNode bvh_node{node->bound,
                      0,
                      static_cast<int>(node->triangles.size()),
-                     static_cast<uint8_t>(node->depth),
                      static_cast<uint8_t>(node->split_axis)};
     auto index = m_nodes.size();
     m_nodes.push_back(bvh_node);
@@ -275,7 +282,7 @@ BVHTreeNode *BVHTreeNodeAllocator::allocate()
 {
     if(m_ptr = 4096)
     {
-        m_node_list.push_back(new BVHTreeNode[4096]);
+        m_node_list.push_back(new BVHTreeNode[4096]{});
         m_ptr = 0;
     }
 

@@ -1,18 +1,11 @@
 #pragma once
 
-#include "geometry/shape.hpp"
 #include "model/material.hpp"
+#include "accelerate/scene_bvh.hpp"
+#include <vector>
 
 class Scene : public Shape
 {
-    struct Instance
-    {
-        const Shape &shape;
-        Material material;
-        glm::mat4 world_from_object;
-        glm::mat4 object_from_world;
-    };
-
 public:
     Scene() = default;
 
@@ -28,6 +21,9 @@ public:
                                                 float t_min = 1e-5,
                                                 float t_max = std::numeric_limits<float>::infinity()) const override;
 
+    void buildBVH();
 private:
     std::vector<Instance> m_instances;
+
+    SceneBVH m_bvh{};  
 };

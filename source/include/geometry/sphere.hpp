@@ -24,6 +24,8 @@ public:
         float t_min = 1e-5,
         float t_max = std::numeric_limits<float>::infinity()) const override;
 
+    virtual Bound getBound() const;
+    
 private:
     glm::vec3 center;
 

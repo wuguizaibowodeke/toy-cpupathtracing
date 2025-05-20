@@ -11,7 +11,8 @@ glm::vec3 SimpleRTRenderer::renderPixel(const glm::ivec2 &pixel_coord)
     auto ray = m_camera.generateRay(pixel_coord, {m_rng.uniform(), m_rng.uniform()});
     glm::vec3 beta{1, 1, 1};
     glm::vec3 color{0, 0, 0};
-    while (true)
+    size_t maax_bound_count = 21;
+    while (maax_bound_count--)
     {
         auto hit_info = m_scene.intersect(ray);
         if (hit_info.has_value())

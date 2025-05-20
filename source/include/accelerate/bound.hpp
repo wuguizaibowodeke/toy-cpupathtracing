@@ -37,6 +37,18 @@ public:
 
     float area() const;
 
+    /**
+     * @brief Get the center of the bounding box
+     * @param index 0-7 表示包围盒的8个角
+     */
+    glm::vec3 getCorner(size_t index) const;
+
+    /**
+     * @brief 判断包围盒是否有效
+     * @return T
+     */
+    bool isValid() const;
+
 private:
     glm::vec3 m_leftBottom;
     glm::vec3 m_rightTop;

@@ -117,3 +117,28 @@ float Bound::area() const
     auto diag = diagonal();
     return 2.0f * (diag.x * diag.y + diag.x * diag.z + diag.y * diag.z);
 }
+
+glm::vec3 Bound::getCorner(size_t index) const
+{
+    auto corner = m_rightTop;
+    if ((index & 0b1) == 0)
+    {
+        corner.x = m_leftBottom.x;
+    }
+    if ((index & 0b10) == 0)
+    {
+        corner.y = m_leftBottom.y;
+    }
+    if ((index & 0b100) == 0)
+    {
+        corner.z = m_leftBottom.z;
+    }
+    return corner;
+}
+
+bool Bound::isValid() const
+{
+    return m_leftBottom.x <= m_rightTop.x &&
+           m_leftBottom.y <= m_rightTop.y &&
+           m_leftBottom.z <= m_rightTop.z;
+}

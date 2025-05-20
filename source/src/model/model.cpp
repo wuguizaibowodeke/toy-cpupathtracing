@@ -78,3 +78,9 @@ std::optional<RayHitInfo> Model::intersect(const Ray &ray, float t_min, float t_
 {
     return m_bvh.intersect(ray, t_min, t_max);
 }
+
+
+Bound Model::getBound() const
+{
+    return m_bvh.getBound();
+}

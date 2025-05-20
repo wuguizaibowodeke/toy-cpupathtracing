@@ -24,7 +24,7 @@ struct BVHTreeNode
     }
 };
 
-struct /*alignas(32)*/ BVHNode
+struct BVHNode
 {
     Bound bound{};
     union
@@ -33,7 +33,6 @@ struct /*alignas(32)*/ BVHNode
         int triangle_index;
     };
     int triangle_count;
-    uint8_t depth;
     uint8_t split_axis;
 };
 
@@ -42,11 +41,13 @@ struct BVHState
     size_t total_node_count{};
     size_t leaf_node_count{};
     size_t max_leaf_node_triangle_count{};
+    size_t max_leaf_node_depth{};
 
     void addLeafNode(BVHTreeNode *node)
     {
         leaf_node_count++;
         max_leaf_node_triangle_count = glm::max(max_leaf_node_triangle_count, node->triangles.size());
+        max_leaf_node_depth = glm::max(max_leaf_node_depth, node->depth);
     }
 };
 
@@ -76,6 +77,8 @@ public:
     virtual std::optional<RayHitInfo> intersect(const Ray &ray,
                                                 float t_min,
                                                 float t_max) const override;
+
+    virtual Bound getBound() const override;
 
 private:
     void build(const std::vector<Triangle> &triangles);

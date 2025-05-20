@@ -19,11 +19,11 @@ int main()
 {
     Logger::Init();
     Film film{192 * 4, 108 * 4};
-    Camera camera{film, {3.6, 0, 0}, {0, 0, 0}, 45};
+    Camera camera{film, {-7, 5, -7}, {0, 0, 0}, 45};
     std::atomic<int> count = 0;
 
     Model model("asset/models/dragon_871k.obj");
-    //Model model("asset/models/simple_dragon.obj");
+    // Model model("asset/models/simple_dragon.obj");
     Sphere sphere{
         {0, 0, 0},
         1.0f};
@@ -37,48 +37,69 @@ int main()
 
     RGB r = RGB(255, 0, 0);
 
+    Material material{color1, {0, 0, 0}, false};
+    Material green_material{{1, 1, 1}, color2, false};
+    Material blue_material{{1, 1, 1}, color3, true};
 
-    Material red_material{color1, {0, 0, 0} , false};
-    Material green_material{{1,1,1},color2, false};
-    Material blue_material{{1,1,1},color3, true};
+    Scene scene{};
+    RandomNumberGenerator rng{1234};
+    for (size_t i = 0; i < 100; ++i)
+    {
+        float x = rng.uniform() * 10 - 5;
+        float y = rng.uniform() * 2;
+        float z = rng.uniform() * 10 - 5;
+        glm::vec3 pos(x, y, z);
+        float u = rng.uniform();
+        if (u < 0.9)
+        {
+            scene.addInstance(
+                model,
+                Material(RGB(202, 159, 117), {0, 0, 0}, rng.uniform() > 0.5),
+                pos,
+                {1, 1, 1},
+                {rng.uniform() * 360, rng.uniform() * 360, rng.uniform() * 360});
+        }
+        else if (u < 0.95)
+        {
+            scene.addInstance(
+                sphere,
+                Material({rng.uniform(), rng.uniform(), rng.uniform()}, {0, 0, 0}, true),
+                pos,
+                {1, 1, 1},
+                {rng.uniform() * 360, rng.uniform() * 360, rng.uniform() * 360});
+        }
+        else
+        {
+            pos.y += 4;
+            scene.addInstance(
+                sphere,
+                Material({1, 1, 1}, {rng.uniform() * 4, rng.uniform() * 4, rng.uniform() * 4}, false),
+                pos,
+                {1, 1, 1},
+                {rng.uniform() * 360, rng.uniform() * 360, rng.uniform() * 360});
+        }
+    }
 
-    Scene scene {};
     scene.addInstance(
-        model,
-        red_material,
-        { 0, 0, 0 },
-        { 1, 3, 2 }
-    );
-    
-    
-    scene.addInstance(
-        sphere,
-        green_material,
-        { 0, 0, 2.5 }
-    );
-    scene.addInstance(
-        sphere,
-        blue_material,
-        { 0, 0, -2.5 }
-    );
+        plane,
+        Material(RGB(120, 204, 157), {0, 0, 0}, false),
+        {0, -2, 0},
+        {10, 10, 10},
+        {0, 0, 0});
+
+    scene.buildBVH();
 
     NormalRenderer normal_renderer{camera, scene};
     normal_renderer.render(1, "normal.ppm");
 
     const size_t spp = 64;
 
-#if(1)
     BoundsTestCountRenderer bounds_test_count_renderer{camera, scene};
     bounds_test_count_renderer.render(1, "bounds_test_count.ppm");
 
     TriangleTestCountRenderer triangle_test_count_renderer{camera, scene};
     triangle_test_count_renderer.render(1, "triangle_test_count.ppm");
 
-    BoundsDepthRenderer bounds_depth_renderer{camera, scene};
-    bounds_depth_renderer.render(1, "bounds_depth.ppm");
-#endif
-
     SimpleRTRenderer simple_rt_renderer{camera, scene};
     simple_rt_renderer.render(spp, "simple_rt.ppm");
-
 }
