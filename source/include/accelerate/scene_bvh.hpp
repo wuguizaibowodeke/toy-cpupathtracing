@@ -5,8 +5,8 @@
 
 struct Instance
 {
-    const Shape &shape;
-    Material material;
+    ShapePtr shape;
+    MaterialPtr material;
     glm::mat4 world_from_object;
     glm::mat4 object_from_world;
     //世界坐标系下的包围盒
@@ -16,7 +16,7 @@ struct Instance
     void updateBound()
     {
         bound = {};
-        auto bounds_object = shape.getBound();
+        auto bounds_object = shape->getBound();
         for(size_t i = 0; i < 8; i++)
         {
             auto corner = bounds_object.getCorner(i);

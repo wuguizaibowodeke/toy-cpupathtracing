@@ -9,9 +9,11 @@
 #include "renderers/normal_renderer.hpp"
 #include "renderers/simple_rt_renderer.hpp"
 #include "renderers/debug_renderer.hpp"
+#include "renderers/pathtracing_renderer.hpp"
 
 #include <iostream>
 #include <random>
+#include <memory>
 
 #include "log.hpp"
 
@@ -22,14 +24,17 @@ int main()
     Camera camera{film, {-7, 5, -7}, {0, 0, 0}, 45};
     std::atomic<int> count = 0;
 
-    Model model("asset/models/dragon_871k.obj");
-    // Model model("asset/models/simple_dragon.obj");
+    auto model = std::shared_ptr<Model>(new Model("asset/models/dragon_871k.obj"));
     Sphere sphere{
         {0, 0, 0},
         1.0f};
+
+    ShapePtr sphere_shape = std::make_shared<Sphere>(sphere);
+
     Plane plane{
         {0, 0, 0},
         {0, 1, 0}};
+    ShapePtr plane_shape = std::make_shared<Plane>(plane);
 
     RGB color1(202, 159, 117);
     RGB color2(255, 128, 128);
@@ -41,9 +46,18 @@ int main()
     Material green_material{{1, 1, 1}, color2, false};
     Material blue_material{{1, 1, 1}, color3, true};
 
-    Scene scene{};
     RandomNumberGenerator rng{1234};
-    for (size_t i = 0; i < 100; ++i)
+    auto material1 = std::make_shared<Material>(RGB(202, 159, 117), glm::vec3(0, 0, 0), rng.uniform() > 0.5);
+
+    auto material2 = std::make_shared<Material>(RGB(rng.uniform() * 255, rng.uniform() * 255, rng.uniform() * 255), glm::vec3(0, 0, 0), true);
+
+    auto material3 = std::make_shared<Material>(glm::vec3{1, 1 ,1}, glm::vec3(0.5, rng.uniform(), rng.uniform()), false);
+
+    auto material4 = std::make_shared<Material>(RGB(120, 204, 157), glm::vec3(0, 0, 0), false);
+
+    Scene scene{};
+    
+    for (size_t i = 0; i < 1000; ++i)
     {
         float x = rng.uniform() * 10 - 5;
         float y = rng.uniform() * 2;
@@ -54,7 +68,7 @@ int main()
         {
             scene.addInstance(
                 model,
-                Material(RGB(202, 159, 117), {0, 0, 0}, rng.uniform() > 0.5),
+                material1,
                 pos,
                 {1, 1, 1},
                 {rng.uniform() * 360, rng.uniform() * 360, rng.uniform() * 360});
@@ -62,8 +76,8 @@ int main()
         else if (u < 0.95)
         {
             scene.addInstance(
-                sphere,
-                Material({rng.uniform(), rng.uniform(), rng.uniform()}, {0, 0, 0}, true),
+                sphere_shape,
+                material2,
                 pos,
                 {1, 1, 1},
                 {rng.uniform() * 360, rng.uniform() * 360, rng.uniform() * 360});
@@ -72,8 +86,8 @@ int main()
         {
             pos.y += 4;
             scene.addInstance(
-                sphere,
-                Material({1, 1, 1}, {rng.uniform() * 4, rng.uniform() * 4, rng.uniform() * 4}, false),
+                sphere_shape,
+                material3,
                 pos,
                 {1, 1, 1},
                 {rng.uniform() * 360, rng.uniform() * 360, rng.uniform() * 360});
@@ -81,11 +95,24 @@ int main()
     }
 
     scene.addInstance(
-        plane,
-        Material(RGB(120, 204, 157), {0, 0, 0}, false),
+        plane_shape,
+        material4,
         {0, -2, 0},
         {10, 10, 10},
         {0, 0, 0});
+
+    if(0)
+    {
+       /*scene.addInstance(
+            sphere_shape,
+            material1,
+            {0, -2, 0});     */
+
+       scene.addInstance(
+            sphere_shape,
+            material3,
+            {0, 2, 0});    
+    }
 
     scene.buildBVH();
 
@@ -102,4 +129,7 @@ int main()
 
     SimpleRTRenderer simple_rt_renderer{camera, scene};
     simple_rt_renderer.render(spp, "simple_rt.ppm");
+
+    PathTracingRenderer path_tracing_renderer{camera, scene};
+    path_tracing_renderer.render(spp, "path_tracing.ppm");
 }

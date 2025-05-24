@@ -16,7 +16,8 @@ public:
     virtual std::optional<RayHitInfo> intersect(const Ray &ray, float t_min,
                                         float t_max) const override;
 
-    virtual Bound getBound() const override;               
+    virtual Bound getBound() const override;
+                   
 private:
     BVH m_bvh{};
 };

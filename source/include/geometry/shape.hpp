@@ -3,6 +3,7 @@
 #include "camera/ray.hpp"
 #include "accelerate/bound.hpp"
 #include <optional>
+#include <memory>
 
 class Shape
 {
@@ -19,3 +20,5 @@ public:
         return {};
     }
 };
+
+using ShapePtr = std::shared_ptr<Shape>;

@@ -67,7 +67,7 @@ std::optional<RayHitInfo> SceneBVH::intersect(const Ray &ray,
             for (size_t i = 0; i < node.instance_count; ++i)
             {
                 auto ray_object = ray.objectFromWorld(instance_index->object_from_world);
-                auto hitinfo = instance_index->shape.intersect(ray_object, t_min, t_max);
+                auto hitinfo = instance_index->shape->intersect(ray_object, t_min, t_max);
                 DEBUG_LINE(ray.bounds_test_count += ray_object.bounds_test_count)
                 DEBUG_LINE(ray.triangle_test_count += ray_object.triangle_test_count)
                 if (hitinfo.has_value())
@@ -89,7 +89,7 @@ std::optional<RayHitInfo> SceneBVH::intersect(const Ray &ray,
     for(const auto &infinity_instance : m_infinite_instances)
     {
         auto ray_object = ray.objectFromWorld(infinity_instance.object_from_world);
-        auto hitinfo = infinity_instance.shape.intersect(ray_object, t_min, t_max);
+        auto hitinfo = infinity_instance.shape->intersect(ray_object, t_min, t_max);
         DEBUG_LINE(ray.bounds_test_count += ray_object.bounds_test_count)
         DEBUG_LINE(ray.triangle_test_count += ray_object.triangle_test_count)
         if (hitinfo.has_value())
@@ -104,7 +104,7 @@ std::optional<RayHitInfo> SceneBVH::intersect(const Ray &ray,
     {
         closest_hitinfo->hit_point = (closest_instance->world_from_object) * glm::vec4(closest_hitinfo->hit_point, 1.f);
         closest_hitinfo->normal = glm::normalize(glm::vec3(glm::transpose(closest_instance->object_from_world) * glm::vec4(closest_hitinfo->normal, 0.f)));
-        closest_hitinfo->material = &closest_instance->material;
+        closest_hitinfo->material = closest_instance->material;
     }
 
 #ifdef WITH_DEBUG_INFO
@@ -130,7 +130,7 @@ void SceneBVH::build(std::vector<Instance> &&instances)
     auto temp_instances = std::move(instances);
     for(auto & instance : temp_instances)
     {
-        if(instance.shape.getBound().isValid())
+        if(instance.shape->getBound().isValid())
         {
             instance.updateBound();
             root->instances.push_back(instance);
@@ -234,7 +234,7 @@ void SceneBVH::recursiveSplit(SceneBVHTreeNode *node, SceneBVHState &state)
         return;
     }
 
-    node->left = new SceneBVHTreeNode();
+    node->left = m_node_allocator.allocate();
     node->left->depth = node->depth + 1;
     node->left->instances.reserve(min_left_instance_count);
     for (size_t i = 0; i < min_split_index; ++i)
@@ -246,7 +246,7 @@ void SceneBVH::recursiveSplit(SceneBVHTreeNode *node, SceneBVHState &state)
     }
     node->left->bound = min_leftnode_bound;
 
-    node->right = new SceneBVHTreeNode();
+    node->right = m_node_allocator.allocate();
     node->right->depth = node->depth + 1;
     node->right->instances.reserve(min_right_instance_count);
     for (size_t i = min_split_index; i < bucket_count; ++i)
@@ -311,7 +311,7 @@ SceneBVHTreeNodeAllocator::~SceneBVHTreeNodeAllocator()
 
 SceneBVHTreeNode *SceneBVHTreeNodeAllocator::allocate()
 {
-    if (m_ptr = 4096)
+    if (m_ptr == 4096)
     {
         m_node_list.push_back(new SceneBVHTreeNode[4096]{});
         m_ptr = 0;

@@ -5,7 +5,7 @@ Scene::~Scene()
 {
 }
 
-void Scene::addInstance(const Shape &shape, const Material &material, const glm::vec3 &pos, const glm::vec3 &scale, const glm::vec3 &rotate)
+void Scene::addInstance(ShapePtr shape, MaterialPtr material, const glm::vec3 &pos, const glm::vec3 &scale, const glm::vec3 &rotate)
 {
     glm::mat4 world_from_object =
         glm::translate(glm::mat4(1.f), pos) *

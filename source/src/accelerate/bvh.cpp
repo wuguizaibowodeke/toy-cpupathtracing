@@ -203,7 +203,7 @@ void BVH::recursiveSplit(BVHTreeNode *node, BVHState &state)
         return;
     }
 
-    node->left = new BVHTreeNode();
+    node->left = m_node_allocator.allocate();
     node->left->depth = node->depth + 1;
     node->left->triangles.reserve(min_left_triangle_count);
     for(size_t i = 0; i < min_split_index; ++i)
@@ -215,7 +215,7 @@ void BVH::recursiveSplit(BVHTreeNode *node, BVHState &state)
     }
     node->left->bound = min_leftnode_bound;
 
-    node->right = new BVHTreeNode();
+    node->right = m_node_allocator.allocate();
     node->right->depth = node->depth + 1;
     node->right->triangles.reserve(min_right_triangle_count);
     for(size_t i = min_split_index; i < bucket_count; ++i)
@@ -280,7 +280,7 @@ BVHTreeNodeAllocator::~BVHTreeNodeAllocator()
 
 BVHTreeNode *BVHTreeNodeAllocator::allocate()
 {
-    if(m_ptr = 4096)
+    if(m_ptr == 4096)
     {
         m_node_list.push_back(new BVHTreeNode[4096]{});
         m_ptr = 0;

@@ -11,8 +11,7 @@ public:
 
     virtual ~Scene();
 
-    void addInstance(const Shape &shape,
-                     const Material &material = {},
+    void addInstance(ShapePtr shape, MaterialPtr material,
                      const glm::vec3 &pos = {0, 0, 0},
                      const glm::vec3 &scale = {1, 1, 1},
                      const glm::vec3 &rotate = {0, 0, 0});

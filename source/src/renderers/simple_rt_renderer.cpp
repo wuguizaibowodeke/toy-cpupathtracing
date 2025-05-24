@@ -11,7 +11,7 @@ glm::vec3 SimpleRTRenderer::renderPixel(const glm::ivec2 &pixel_coord)
     auto ray = m_camera.generateRay(pixel_coord, {m_rng.uniform(), m_rng.uniform()});
     glm::vec3 beta{1, 1, 1};
     glm::vec3 color{0, 0, 0};
-    size_t maax_bound_count = 21;
+    size_t maax_bound_count = 32;
     while (maax_bound_count--)
     {
         auto hit_info = m_scene.intersect(ray);
@@ -26,7 +26,7 @@ glm::vec3 SimpleRTRenderer::renderPixel(const glm::ivec2 &pixel_coord)
             if (hit_info->material->getEnableSpecular())
             {
                 glm::vec3 view_direction = frame.localFromWorld(-ray.direction);
-                light_direction = {-view_direction.x, view_direction.y, view_direction.z};
+                light_direction = {-view_direction.x, view_direction.y, -view_direction.z};
             }
             else
             {
