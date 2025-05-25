@@ -1,125 +1,100 @@
-#include "thread/thread_pool.hpp"
-#include "camera/film.hpp"
-#include "camera/camera.hpp"
 #include "geometry/sphere.hpp"
 #include "geometry/plane.hpp"
 #include "model/model.hpp"
 #include "model/scene.hpp"
-#include "model/material.hpp"
+#include "material/specular_material.hpp"
+#include "material/diffuse_material.hpp"
+#include "material/dielectric_material.hpp"
+#include "material/grid_ground_material.hpp"
 #include "util/frame.hpp"
 #include "util/rgb.hpp"
+#include "util/progress.hpp"
+#include "renderers/normal_renderer.hpp"
+#include "renderers/simple_rt_renderer.hpp"
+#include "renderers/debug_renderer.hpp"
+#include "renderers/pathtracing_renderer.hpp"
 
 #include <iostream>
 #include <random>
+#include <memory>
+
+#include "log.hpp"
 
 int main()
 {
-    ThreadPool thread_pool{};
-
-    Film film{192 * 4, 108 * 4};
-    Camera camera{film, {-3.6, 0, 0}, {0, 0, 0}, 45};
+    Logger::Init();
+    Film film{1920, 1080};
+    Camera camera{film, {-1.6, 0, 0 }, {0, 0, 0}, 45};
     std::atomic<int> count = 0;
 
-    Model model("asset/models/simple_dragon.obj");
+    auto model = std::shared_ptr<Model>(new Model("asset/models/dragon_871k.obj"));
     Sphere sphere{
         {0, 0, 0},
-        1.0f};
+        0.5f};
+
+    ShapePtr sphere_shape = std::make_shared<Sphere>(sphere);
+
     Plane plane{
         {0, 0, 0},
         {0, 1, 0}};
+    ShapePtr plane_shape = std::make_shared<Plane>(plane);
 
-    RGB red{255, 0, 0};
-    RGB green{0, 255, 0};
-    RGB blue{0, 0, 255};
-
-    Material red_material{glm::vec3{1, 1, 1}, red, false};
-    Material green_material{glm::vec3{1, 1, 1}, green, false};
-    Material blue_material{glm::vec3{1, 1, 1}, blue, false};
+    RandomNumberGenerator rng{1234};
 
     Scene scene{};
-    scene.addInstance(model,
-                      red_material,
-                      {0, 0, 0});
 
-    scene.addInstance(sphere,
-                      green_material,
-                      {0, 0, 2.5});
+    MaterialPtr specMat = std::make_shared<DiffuseMaterial>(RGB(202, 159, 117));
+    scene.addInstance(
+        model,
+        specMat,
+        {0, 0, 0});
+    
+    MaterialPtr lightMat1 = std::make_shared<DiffuseMaterial>(RGB(255, 0, 0));
+    //lightMat1->setEmissive(glm::vec3(1, 0, 0));
 
-    scene.addInstance(sphere,
-                      blue_material,
-                      {0, 0, -2.5});
+    scene.addInstance(
+        sphere_shape,
+        lightMat1,
+        {0, 0, 1.5});
 
-    scene.addInstance(plane, {}, {0, -0.5, 0});
+    MaterialPtr lightMat2 = std::make_shared<DiffuseMaterial>(RGB(0, 255, 0));
+    //lightMat2->setEmissive(glm::vec3(0, 0, 1));
 
-    std::mt19937 gen(23451224);
-    std::uniform_real_distribution<float> uniform(-1, 1);
-    int spp = 1; // samples per pixel
+    scene.addInstance(
+        sphere_shape,
+        lightMat2,
+        {0, 0, -1.5});
+    
+    MaterialPtr lightMat3 = std::make_shared<DiffuseMaterial>(glm::vec3(1, 1, 1));
+    lightMat3->setEmissive(glm::vec3(0.95, 0.95, 1));
 
-    auto start = std::chrono::high_resolution_clock::now();
+    scene.addInstance(
+        plane_shape,
+        lightMat3,
+        {0, -0.5, 0});
 
-    thread_pool.parallelFor(film.getWidth(), film.getHeight(), [&](size_t x, size_t y)
-                            {
-        for(int i = 0 ; i < spp; i++)
-        {
-            auto ray = camera.generateRay({ x, y },
-             {std::abs(uniform(gen)), std::abs(uniform(gen))});
-            glm::vec3 beta { 1, 1, 1 };
-            glm::vec3 color { 0, 0, 0 };
-            while(true)
-            {         
-                auto hit_info = scene.intersect(ray);
-                if (hit_info.has_value()) 
-                {
-                    color += beta * hit_info->material->getEmissive();
-                    beta *= hit_info->material->getAlbedo();
-
-                    ray.origin = hit_info->hit_point;
-                    Frame frame (hit_info->normal);
-                    glm::vec3 light_direction;
-                    if(hit_info->material->getEnableSpecular())
-                    {
-                        glm::vec3 view_direction = frame.localFromWorld(-ray.direction);
-                        light_direction = {-view_direction.x, view_direction.y, view_direction.z};
-                    }
-                    else
-                    {
-                        do
-                        {
-                            light_direction = {uniform(gen), uniform(gen), uniform(gen)};
-                        } 
-                        while (glm::length(light_direction) > 1.0f);
-                        if(light_direction.y < 0)
-                        {
-                            light_direction.y = -light_direction.y;
-                        }
-                    }
-                    ray.direction = frame.worldFromLocal(light_direction);
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            film.addSample(x, y, color);
-
-        }
+    /*scene.addInstance(
+        plane_shape,
+        lightMat3,
+        {0, 1, 0});*/
 
 
-        int n = ++count;
-        if (n % film.getWidth() == 0) {
-            std::cout << static_cast<float>(n) / (film.getHeight() * film.getWidth()) << std::endl;
-        } });
+    scene.buildBVH();
 
-    thread_pool.wait();
+    NormalRenderer normal_renderer{camera, scene};
+    normal_renderer.render(1, "normal.ppm");
 
-    auto end = std::chrono::high_resolution_clock::now();
-    // 计算耗时（单位：毫秒）
-    std::chrono::duration<double, std::milli> duration = end - start;
-    std::cout << "Function took " << duration.count() << " ms" << std::endl;
+    const size_t spp = 128;
 
-    film.save("sample02.ppm");
-    return 0;
+    BoundsTestCountRenderer bounds_test_count_renderer{camera, scene};
+    bounds_test_count_renderer.render(1, "bounds_test_count.ppm");
+
+    TriangleTestCountRenderer triangle_test_count_renderer{camera, scene};
+    triangle_test_count_renderer.render(1, "triangle_test_count.ppm");
+
+    SimpleRTRenderer simple_rt_renderer{camera, scene};
+    simple_rt_renderer.render(spp, "simple_rt.ppm");
+
+    PathTracingRenderer path_tracing_renderer{camera, scene};
+    path_tracing_renderer.render(spp, "path_tracing.ppm");
 }
-
-

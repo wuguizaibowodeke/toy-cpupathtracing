@@ -11,3 +11,8 @@ glm::vec3 SpecularMaterial::sampleBRDF(const glm::vec3 &view_direction, glm::vec
     beta *= m_albedo;
     return glm::vec3(-view_direction.x, view_direction.y, -view_direction.z); // 反射方向
 }
+
+glm::vec3 SpecularMaterial::sampleBSDF(const glm::vec3 &hit_point, const glm::vec3 &view_direction, glm::vec3 &beta, const RandomNumberGenerator &rng) const
+{
+    return glm::vec3();
+}

@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 # 控制是否编译 samples
 option(BUILD_SAMPLES "Build sample programs" OFF)
-#set(BUILD_SAMPLES ON CACHE BOOL "Build sample programs" FORCE)
+set(BUILD_SAMPLES ON CACHE BOOL "Build sample programs" FORCE)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/glm

@@ -8,4 +8,4 @@ target_compile_definitions(Sample01 PUBLIC
     -DGLM_FORCE_LEFT_HANDED
 )
 
-target_link_libraries(Sample01 CPUPathTracing  glm stdc++fs)
+target_link_libraries(Sample01 CPUPathTracing  glm stdc++fs Logger)

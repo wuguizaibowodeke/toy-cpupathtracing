@@ -4,6 +4,8 @@
 #include "model/scene.hpp"
 #include "material/specular_material.hpp"
 #include "material/diffuse_material.hpp"
+#include "material/dielectric_material.hpp"
+#include "material/grid_ground_material.hpp"
 #include "util/frame.hpp"
 #include "util/rgb.hpp"
 #include "util/progress.hpp"
@@ -21,8 +23,8 @@
 int main()
 {
     Logger::Init();
-    Film film{192 * 4, 108 * 4};
-    Camera camera{film, {-12, 5, -12}, {0, 0, 0}, 45};
+    Film film{1920, 1080};
+    Camera camera{film, {-10, 1.5, 0}, {0, 0, 0}, 45};
     std::atomic<int> count = 0;
 
     auto model = std::shared_ptr<Model>(new Model("asset/models/dragon_871k.obj"));
@@ -40,63 +42,28 @@ int main()
     RandomNumberGenerator rng{1234};
 
     Scene scene{};
-
-    for (size_t i = 0; i < 10000; ++i)
+    for (int i = -3; i < 3; i++)
     {
-        float x = rng.uniform() * 100 - 50;
-        float y = rng.uniform() * 2;
-        float z = rng.uniform() * 100 - 50;
-        glm::vec3 pos(x, y, z);
-        float u = rng.uniform();
+        MaterialPtr material = std::make_shared<DielectricMaterial>(glm::vec3{1, 1, 1}, 1.0f + (0.2f * (i + 3)));
+        scene.addInstance(
+            sphere_shape,
+            material,
+            {0, 0.5, i * 2},
+            {0.8, 0.8, 0.8});
+    };
 
-        if (u < 0.9)
-        {
-            MaterialPtr material;
-            if (rng.uniform() > 0.5)
-            {
-                material = std::make_shared<SpecularMaterial>(RGB(202, 159, 117)) ;
-            }
-            else
-            {
-                material = std::make_shared<DiffuseMaterial>(RGB(202, 159, 117));
-            }
-            scene.addInstance(
-                model,
-                material,
-                pos,
-                {1, 1, 1},
-                {rng.uniform() * 360, rng.uniform() * 360, rng.uniform() * 360});
-        }
-        else if (u < 0.95)
-        {
-            MaterialPtr material = std::make_shared<SpecularMaterial>(glm::vec3{rng.uniform(), rng.uniform(), rng.uniform()});
-            scene.addInstance(
-                sphere_shape,
-                material,
-                pos,
-                {1, 1, 1},
-                {rng.uniform() * 360, rng.uniform() * 360, rng.uniform() * 360});
-        }
-        else
-        {
-            pos.y += 6;
-            MaterialPtr material = std::make_shared<DiffuseMaterial>(glm::vec3{0, 0, 0});
-            material->setEmissive({rng.uniform() * 4, rng.uniform() * 4, rng.uniform() * 4});
-            scene.addInstance(
-                sphere_shape,
-                material,
-                pos,
-                {1, 1, 1},
-                {rng.uniform() * 360, rng.uniform() * 360, rng.uniform() * 360});
-        }
-    }
-    MaterialPtr material4 = std::make_shared<DiffuseMaterial>(RGB(120, 204, 157));
+    MaterialPtr diffMat = std::make_shared<GridGroundMaterial>(RGB(120, 204, 157));
     scene.addInstance(
         plane_shape,
-        material4,
-        {0, -2, 0},
-        {10, 10, 10},
-        {0, 0, 0});
+        diffMat,
+        {0, -0.5, 0});
+
+    MaterialPtr lightMat = std::make_shared<DiffuseMaterial>(glm::vec3(1, 1, 1));
+    lightMat->setEmissive(glm::vec3(1, 1, 1));
+    scene.addInstance(
+        plane_shape,
+        lightMat,
+        {0, -10, 0});
 
     scene.buildBVH();
 
