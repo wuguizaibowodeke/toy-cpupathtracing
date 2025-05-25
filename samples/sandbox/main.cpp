@@ -2,7 +2,8 @@
 #include "geometry/plane.hpp"
 #include "model/model.hpp"
 #include "model/scene.hpp"
-#include "model/material.hpp"
+#include "material/specular_material.hpp"
+#include "material/diffuse_material.hpp"
 #include "util/frame.hpp"
 #include "util/rgb.hpp"
 #include "util/progress.hpp"
@@ -21,7 +22,7 @@ int main()
 {
     Logger::Init();
     Film film{192 * 4, 108 * 4};
-    Camera camera{film,  { -12, 5, -12 }, { 0, 0, 0 }, 45 };
+    Camera camera{film, {-12, 5, -12}, {0, 0, 0}, 45};
     std::atomic<int> count = 0;
 
     auto model = std::shared_ptr<Model>(new Model("asset/models/dragon_871k.obj"));
@@ -36,20 +37,10 @@ int main()
         {0, 1, 0}};
     ShapePtr plane_shape = std::make_shared<Plane>(plane);
 
-    RGB color1(202, 159, 117);
-    RGB color2(255, 128, 128);
-    RGB color3(128, 128, 255);
-
-    RGB r = RGB(255, 0, 0);
-
-    Material material{color1, {0, 0, 0}, false};
-    Material green_material{{1, 1, 1}, color2, false};
-    Material blue_material{{1, 1, 1}, color3, true};
-
     RandomNumberGenerator rng{1234};
 
     Scene scene{};
-    
+
     for (size_t i = 0; i < 10000; ++i)
     {
         float x = rng.uniform() * 100 - 50;
@@ -57,26 +48,31 @@ int main()
         float z = rng.uniform() * 100 - 50;
         glm::vec3 pos(x, y, z);
         float u = rng.uniform();
-        auto material1 = std::make_shared<Material>(RGB(202, 159, 117), glm::vec3(0, 0, 0), rng.uniform() > 0.5);
 
-        auto material2 = std::make_shared<Material>(RGB(rng.uniform() * 255, rng.uniform() * 255, rng.uniform() * 255), glm::vec3(0, 0, 0), true);
-
-        auto material3 = std::make_shared<Material>(glm::vec3{1, 1 ,1}, glm::vec3(rng.uniform() * 4, rng.uniform() * 4, rng.uniform() * 4), false);
-  
         if (u < 0.9)
         {
+            MaterialPtr material;
+            if (rng.uniform() > 0.5)
+            {
+                material = std::make_shared<SpecularMaterial>(RGB(202, 159, 117)) ;
+            }
+            else
+            {
+                material = std::make_shared<DiffuseMaterial>(RGB(202, 159, 117));
+            }
             scene.addInstance(
                 model,
-                material1,
+                material,
                 pos,
                 {1, 1, 1},
                 {rng.uniform() * 360, rng.uniform() * 360, rng.uniform() * 360});
         }
         else if (u < 0.95)
         {
+            MaterialPtr material = std::make_shared<SpecularMaterial>(glm::vec3{rng.uniform(), rng.uniform(), rng.uniform()});
             scene.addInstance(
                 sphere_shape,
-                material2,
+                material,
                 pos,
                 {1, 1, 1},
                 {rng.uniform() * 360, rng.uniform() * 360, rng.uniform() * 360});
@@ -84,15 +80,17 @@ int main()
         else
         {
             pos.y += 6;
+            MaterialPtr material = std::make_shared<DiffuseMaterial>(glm::vec3{0, 0, 0});
+            material->setEmissive({rng.uniform() * 4, rng.uniform() * 4, rng.uniform() * 4});
             scene.addInstance(
                 sphere_shape,
-                material3,
+                material,
                 pos,
                 {1, 1, 1},
                 {rng.uniform() * 360, rng.uniform() * 360, rng.uniform() * 360});
         }
     }
-    auto material4 = std::make_shared<Material>(RGB(120, 204, 157), glm::vec3(0, 0, 0), false);
+    MaterialPtr material4 = std::make_shared<DiffuseMaterial>(RGB(120, 204, 157));
     scene.addInstance(
         plane_shape,
         material4,

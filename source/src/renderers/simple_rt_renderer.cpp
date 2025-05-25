@@ -8,6 +8,7 @@ SimpleRTRenderer::SimpleRTRenderer(Camera &camera, Scene &scene)
 
 glm::vec3 SimpleRTRenderer::renderPixel(const glm::ivec2 &pixel_coord)
 {
+    /*
     auto ray = m_camera.generateRay(pixel_coord, {m_rng.uniform(), m_rng.uniform()});
     glm::vec3 beta{1, 1, 1};
     glm::vec3 color{0, 0, 0};
@@ -49,5 +50,6 @@ glm::vec3 SimpleRTRenderer::renderPixel(const glm::ivec2 &pixel_coord)
         }
     }
 
-    return color;
+    return color;*/
+    return {0, 0, 0};
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "model/material.hpp"
+#include "material/material.hpp"
 #include "accelerate/scene_bvh.hpp"
 #include <vector>
 

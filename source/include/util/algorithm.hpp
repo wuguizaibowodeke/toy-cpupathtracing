@@ -21,12 +21,12 @@ public:
         m_generator.seed(seed);
     }
 
-    float uniform()
+    float uniform() const
     {
         return m_distribution(m_generator);
     }
 
 private:
-    std::mt19937 m_generator;
-    std::uniform_real_distribution<float> m_distribution{0, 1};
+    mutable std::mt19937 m_generator;
+    mutable std::uniform_real_distribution<float> m_distribution{0, 1};
 };

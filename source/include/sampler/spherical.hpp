@@ -18,7 +18,7 @@ inline glm::vec3 CosineSampleHemisphere(const glm::vec2 &u)
     return {r * glm::cos(phi), glm::sqrt(1 - u.x), r * glm::sin(phi)};
 }
 
-inline glm::vec3 UniformSampleHemisphere(RandomNumberGenerator &rng)
+inline glm::vec3 UniformSampleHemisphere(const RandomNumberGenerator &rng)
 {
     glm::vec3 result;
     do
